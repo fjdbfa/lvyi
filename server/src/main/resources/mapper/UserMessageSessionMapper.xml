@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.example.server.mapper.UserMessageSessionMapper">
+
+    <resultMap id="ChatSessionMap" type="org.example.pojo.entity.UserMessageSession">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="userName" column="user_name"/>
+        <result property="userAvatar" column="user_avatar"/>
+        <result property="contactId" column="contact_id"/>
+        <result property="contactName" column="contact_name"/>
+        <result property="contactAvatar" column="contact_avatar"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+    <update id="updateContact">
+        UPDATE user_message_sessions
+        <set>
+            <if test="contactName != null">contact_name = #{contactName},</if>
+            <if test="contactAvatar != null">contact_avatar = #{contactAvatar},</if>
+            updated_at = NOW()
+        </set>
+        WHERE user_id = #{userId} AND contact_id = #{contactId}
+    </update>
+    <update id="updateUser">
+        UPDATE user_message_sessions
+        <set>
+            <if test="userName != null">user_name = #{userName},</if>
+            <if test="userAvatar != null">user_avatar = #{userAvatar},</if>
+            updated_at = NOW()
+        </set>
+        WHERE user_id = #{userId} AND contact_id = #{contactId}
+    </update>
+
+
+    <!-- 查询用户的聊天列表 -->
+    <select id="selectByUserId" resultMap="ChatSessionMap">
+        SELECT id, user_id, contact_id, contact_name, contact_avatar,
+               created_at, updated_at
+        FROM user_message_sessions
+        WHERE user_id = #{userId}
+        ORDER BY updated_at DESC, created_at DESC
+    </select>
+
+    <!-- 查询用户与特定联系人的会话 -->
+    <select id="selectMessagesBetweenUsers" resultType="org.example.pojo.envcontent.UserMessageHistoryVo">
+        SELECT
+            sender_id AS senderId,
+            content
+        FROM user_messages
+        WHERE (sender_id = #{userId} AND receiver_id = #{contactId})
+           OR (sender_id = #{contactId} AND receiver_id = #{userId})
+        ORDER BY created_at ASC
+    </select>
+    <select id="selectOne" resultType="org.example.pojo.entity.UserMessageSession">
+        SELECT id,
+               user_id,
+               contact_id,
+               created_at,
+               updated_at
+        FROM user_message_sessions
+        WHERE user_id = #{userId}
+          AND contact_id = #{contactId}
+    </select>
+    <select id="selectByContactId" resultType="org.example.pojo.entity.UserMessageSession">
+         SELECT id, user_id, contact_id, contact_name, contact_avatar, created_at, updated_at
+          FROM user_message_sessions
+         WHERE contact_id = #{contactId} ORDER BY updated_at DESC, created_at DESC
+         </select>
+    <select id="selectContactInfo" resultType="org.example.pojo.dto.ContactInfoDTO">
+        SELECT user_id as senderId , contact_id as contactId
+        FROM user_message_sessions
+        WHERE user_id = #{userId} OR contact_id = #{userId}
+    </select>
+
+    <!-- 创建新会话 -->
+    <insert id="upsert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user_message_sessions
+            (user_id, user_name, user_avatar, contact_id, contact_name, contact_avatar, created_at, updated_at)
+        VALUES (#{userId}, #{userName}, #{userAvatar}, #{contactId}, #{contactName}, #{contactAvatar}, #{createdAt}, #{updatedAt})
+        ON DUPLICATE KEY UPDATE user_name = VALUES(user_name), user_avatar = VALUES(user_avatar), contact_name = VALUES(contact_name), contact_avatar = VALUES(contact_avatar), updated_at = VALUES(updated_at)
+    </insert>
+    <!--  创建新会话  -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+     INSERT INTO user_message_sessions ( user_id, contact_id, contact_name, contact_avatar )
+     VALUES ( #{userId}, #{contactId}, #{contactName}, #{contactAvatar} )
+     </insert>
+
+
+
+</mapper>

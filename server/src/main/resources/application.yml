@@ -1,0 +1,138 @@
+xxx:
+  jwt:
+    admin-secret-key: itcastshjauwuaihdshsbxzjhasdaddddw
+    admin-ttl: 7200000
+    admin-token-name: token
+
+langchain4j:
+  open-ai:
+    chat-model:
+      base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
+      api-key: sk-2e492c4cbdc641d2b414f9aa7f9dd199
+      model-name: qwen3-vl-plus
+      log-requests: true
+      log-responses: true
+
+    streaming-chat-model:
+      base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
+      api-key: sk-2e492c4cbdc641d2b414f9aa7f9dd199
+      model-name: qwen3-vl-plus
+      log-requests: true
+
+logging:
+  level:
+    dev.langchain4j.http.client.log.LoggingHttpClient: INFO
+    dev.ai4j.openai4j: DEBUG
+
+# 豆包（火山引擎 Ark）
+# ⚠️ 不要把 API Key 写死在 yml 里，改用环境变量 DOUBAO_API_KEY
+doubao:
+  # OpenAI 兼容对话接口（给 LangChain4j 的 OpenAiChatModel/OpenAiStreamingChatModel 用）
+  chat:
+    base-url: https://ark.cn-beijing.volces.com/api/v3
+    api-key: 2a468aa0-09c8-46b2-93f1-70b0088d6950
+    # 建议填“文本/多模态对话模型”的推理接入点（不要填图生视频模型）
+    model-name: ep-20260317160752-mqch4
+  # 图生视频等内容生成接口（你 curl 的那个）
+  content:
+    base-url: https://ark.cn-beijing.volces.com/api/v3
+    api-key: 2a468aa0-09c8-46b2-93f1-70b0088d6950
+    # 例：doubao-seedance-1-0-pro-fast-251015
+    model-name: ep-20260317160752-mqch4
+
+mybatis:
+  #mapper配置文件
+  mapper-locations: classpath:mapper/*.xml #配置mybatis的mapper文件路径
+  #原本是mybits映射要在相同的路径下才能映射如
+  #src/main/java/org/example/server/mapper
+  #XML 应放在src/main/resources/org/example/server/mapper下
+  #加了这个就可以直接映射resource下的mapper包里的所有xml文件
+  #type-aliases包扫描
+  type-aliases-package: org.example.pojo
+  #这个就是扫描其他模块pojo，这样里面的bean就不需要写的很详细mybatis就能识别了
+mail:
+  senders:
+    QQ:
+      host: smtp.qq.com
+      port: 587
+      username: 2451983880@qq.com
+      password: knkymqfamebrebgf
+      starttls-enable: true
+      ssl-enable: false
+    139:
+      host: smtp.139.com
+      port: 465
+      username: 18779244950@139.com
+      password: 2126e71846c8acb86e00
+      starttls-enable: false
+      ssl-enable: true
+    189:
+      host: smtp.189.cn
+      port: 465
+      username: 18779244950@189.cn
+      password: 2126e71846c8acb86e00
+      starttls-enable: false
+      ssl-enable: true
+# application.yml
+debug: true
+spring:
+  application:
+    name: server
+  # 数据库连接配置
+  datasource:
+    url: jdbc:mysql://192.168.10.10:3306/huanbao?useUnicode=true&characterEncoding=utf-8&autoReconnect=true&serverTimezone=Asia/Shanghai&rewriteBatchedStatements=true
+    username: admin
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  # JPA 配置
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    defer-datasource-initialization: true
+  thymeleaf:
+    cache: false
+    mode: HTML
+    encoding: UTF-8
+    servlet:
+      content-type: text/html
+  data:
+    redis:
+      host: 192.168.10.10
+      port: 6379
+      password: 123456
+      lettuce:
+        pool:
+          max-active: 10
+          max-idle: 10
+          min-idle: 1
+          time-between-eviction-runs: 10s
+  servlet:
+    multipart:
+      max-file-size: 30MB    # 单个文件最大大小（根据需求调整，如10MB、50MB）
+      max-request-size: 100MB # 单次请求总文件大小（需大于max-file-size）
+
+server:
+  port: 8089
+
+mybatis-plus:
+  type-aliases-package: com.itheima.mp.domain.po
+  global-config: # 全局配置global-config
+    db-config:
+      #id-type: assign_id # 主键策略：分配ID（雪花算法）
+      id-type: auto # 主键策略：自增策略
+      update-strategy: not_null # 更新策略：非空字段
+      logic-delete-field: deleted # 配置逻辑删除字段
+aliyun:
+  oss:
+    endpoint: oss-cn-beijing.aliyuncs.com
+    access-key-id: LTAI5t9KWE3KU9YvcgYjzsa9
+    access-key-secret: ONyQmNjmoBjbyeWho8VaVaMlCoHXSl
+    bucket-name: web-thisrtt
+    file-host: xiangmuImage/
+# 百度地图API配置
+baidu:
+  map:
+    ak: AWc27t9Vp6KrNyo7Ud5ni06yYoz1AdPQ
+    geocoding-url: http://api.map.baidu.com/geocoding/v3/

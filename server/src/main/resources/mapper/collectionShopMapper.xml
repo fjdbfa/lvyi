@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.server.mapper.collectionShopMapper">
+
+    <!-- 根据用户ID查询收藏的店铺列表 -->
+    <select id="selectByUserId" resultType="org.example.pojo.entity.collectionShop">
+        SELECT * FROM collection_shop WHERE user_id = #{userId}
+    </select>
+
+    <!-- 检查用户是否已收藏某个店铺 -->
+    <select id="existByShopIdAndUserId" resultType="boolean">
+        SELECT COUNT(*) > 0 FROM collection_shop WHERE shop_id = #{shopId} AND user_id = #{userId}
+    </select>
+
+    <!-- 根据店铺ID和用户ID删除收藏记录 -->
+    <delete id="deleteByShopIdAndUserId">
+        DELETE FROM collection_shop WHERE shop_id = #{shopId} AND user_id = #{userId}
+    </delete>
+
+    <!-- 插入收藏记录 -->
+    <insert id="insert">
+        INSERT INTO collection_shop (user_id, shop_id) VALUES (#{userId}, #{shopId})
+    </insert>
+
+</mapper>

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.example.server.mapper.shopMapper">
+    <!-- 插入：将经纬度转换为POINT类型 -->
+    <!-- 注意表名与实际一致，字段逗号分隔 -->
+    <insert id="insertShop" parameterType="org.example.pojo.entity.Shop">
+        INSERT INTO shop (image_url, shop_details, user_id, price, reference_price, address, coord)
+        VALUES (
+        #{imageUrl},
+        #{shopDetails},
+        #{userId},
+        #{price},
+        #{referencePrice},
+        #{address},
+<!--        #{city},  &lt;!&ndash; 修复：添加逗号 &ndash;&gt;-->
+        ST_GeomFromText(CONCAT('POINT(', #{longitude}, ' ', #{latitude}, ')'))
+        )
+    </insert>
+
+    <select id="selectShopById" resultType="org.example.pojo.entity.Shop">
+        SELECT
+        id,
+        image_url,
+        shop_details,
+        user_id,
+        price,
+        reference_price,
+        address,
+--         city,
+        ST_AsText(coord) AS coord,
+        ST_X(coord) AS longitude,
+        ST_Y(coord) AS latitude
+        FROM shop  <!-- 表名与INSERT保持一致 -->
+        WHERE user_id = #{id}
+    </select>
+    <select id="selectNearbyLocation" resultType="org.example.pojo.entity.Shop">
+        SELECT
+            id,
+            image_url,
+            shop_details,
+            user_id,
+            price,
+            reference_price,
+            address,
+--             city,
+            ST_AsText(coord) AS coord,
+            ST_X(coord) AS longitude,
+            ST_Y(coord) AS latitude,
+            -- 计算距离（单位：米）
+            ST_Distance_Sphere(
+                    coord,
+                    ST_GeomFromText(CONCAT('POINT(', #{targetLng}, ' ', #{targetLat}, ')'))
+            ) AS distance_m
+        FROM shop
+        WHERE
+            -- 仅保留精确距离筛选（1000米内）
+            ST_Distance_Sphere(
+                    coord,
+                    ST_GeomFromText(CONCAT('POINT(', #{targetLng}, ' ', #{targetLat}, ')'))
+            ) &lt;= 1000
+        ORDER BY distance_m ASC
+    </select>
+<!--    <select id="selectNearbyLocation" resultType="org.example.pojo.entity.Shop">-->
+<!--        SELECT-->
+<!--        id,-->
+<!--        image_url,-->
+<!--        shop_details,-->
+<!--        user_id,-->
+<!--        price,-->
+<!--        reference_price,-->
+<!--        address,-->
+<!--        city,-->
+<!--        ST_AsText(coord) AS coord,  &#45;&#45; 保持与selectByIdWithLngLat一致的格式-->
+<!--        ST_X(coord) AS longitude,-->
+<!--        ST_Y(coord) AS latitude,-->
+<!--        ST_Distance_Sphere(-->
+<!--        coord,  &#45;&#45; 使用你的空间字段名coord-->
+<!--        ST_GeomFromText(CONCAT('POINT(', #{targetLng}, ' ', #{targetLat}, ')'))-->
+<!--        ) AS distance_m-->
+<!--        FROM shop  &#45;&#45; 表名改为shop-->
+<!--        WHERE-->
+<!--        &lt;!&ndash; 矩形范围过滤 &ndash;&gt;-->
+<!--        ST_Contains(-->
+<!--        ST_MakeEnvelope(-->
+<!--        #{minX},-->
+<!--        #{minY},-->
+<!--        #{maxX},-->
+<!--        #{maxY}-->
+<!--        ),-->
+<!--        coord  &#45;&#45; 这里也替换为coord-->
+<!--        )-->
+<!--        &lt;!&ndash; 精确距离筛选（1000米内） &ndash;&gt;-->
+<!--        AND ST_Distance_Sphere(-->
+<!--        coord,  &#45;&#45; 替换为coord-->
+<!--        ST_GeomFromText(CONCAT('POINT(', #{targetLng}, ' ', #{targetLat}, ')'))-->
+<!--        ) &lt;= 1000-->
+<!--        ORDER BY distance_m ASC-->
+<!--    </select>-->
+</mapper>

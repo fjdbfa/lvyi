@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.example.server.mapper.FollowMapper">
+
+    <resultMap id="FollowMap" type="org.example.pojo.entity.Follow">
+        <id property="id" column="id"/>
+        <result property="followerId" column="follower_id"/>
+        <result property="followeeId" column="followee_id"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <!-- 查询某人关注了谁 -->
+    <select id="selectByFollowerId" resultMap="FollowMap">
+        SELECT  follower_id, followee_id, created_at
+        FROM follows
+        WHERE follower_id = #{followerId}
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 查询某人的粉丝 -->
+    <select id="selectByFolloweeId" resultMap="FollowMap">
+        SELECT  follower_id, followee_id, created_at
+        FROM follows
+        WHERE followee_id = #{followeeId}
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 检查是否已关注 -->
+    <select id="existsByFollowerAndFollowee" resultType="boolean">
+        SELECT EXISTS(
+            SELECT 1 FROM follows
+            WHERE (follower_id = #{followerId}
+              AND followee_id = #{followeeId})
+        )
+    </select>
+
+    <!-- 添加关注 -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO follows (follower_id, followee_id, created_at)
+        VALUES (#{followerId}, #{followeeId}, NOW())
+    </insert>
+
+    <!-- 取消关注 -->
+    <delete id="deleteByFollowerAndFollowee">
+        DELETE FROM follows
+        WHERE follower_id = #{followerId}
+          AND followee_id = #{followeeId}
+    </delete>
+
+    <!-- 互相关注（高级） -->
+    <select id="selectMutualFollows" resultMap="FollowMap">
+        SELECT f1.*
+        FROM follows f1
+                 INNER JOIN follows f2
+                            ON f1.follower_id = f2.followee_id
+                                AND f1.followee_id = f2.follower_id
+        WHERE f1.follower_id = #{userId}
+    </select>
+    <select id="selectFolloweeIdsByFollower" resultType="java.lang.Long">
+        SELECT followee_id
+        FROM follows
+        WHERE follower_id = #{userId}
+    </select>
+    <select id="countByFolloweeId" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM follows WHERE follower_id = #{userId}
+    </select>
+
+</mapper>

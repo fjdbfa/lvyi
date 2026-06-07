@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.example.server.mapper.userDetailedInformationDataMapper">
+    <insert id="insertUserDetailedInfo" parameterType="org.example.pojo.envcontent.userDetailedInformation"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user_detailed_information (
+            username,
+            gender,
+            avatar,
+            address,
+            coord,           -- 数据库中的 POINT 类型字段
+            youxiang,
+            account_id,
+            region,
+            regions
+        ) VALUES (
+                     #{username, jdbcType=VARCHAR},
+                     #{gender, jdbcType=VARCHAR},
+                     #{avatar, jdbcType=VARCHAR},
+                     #{address, jdbcType=VARCHAR},
+                     -- 核心部分：在 XML 中拼接 longitude 和 latitude 为 WKT 格式的 POINT 字符串
+                     ST_GeomFromText(CONCAT('POINT(', #{longitude}, ' ', #{latitude}, ')')),
+                     #{youxiang, jdbcType=VARCHAR},
+                     #{accountId, jdbcType=VARCHAR},
+                     #{region, jdbcType=VARCHAR},
+                     #{regions, jdbcType=VARCHAR}
+                 )
+    </insert>
+    <update id="updateUserDetailedInfoById" parameterType="org.example.pojo.envcontent.userDetailedInformation">
+        UPDATE user_detailed_information
+        <set>
+            <!-- 使用 <set> 标签可以自动处理逗号和 NULL 值问题 -->
+            <if test="username != null and username != ''">
+                username = #{username, jdbcType=VARCHAR},
+            </if>
+            <if test="gender != null and gender != ''">
+                gender = #{gender, jdbcType=VARCHAR},
+            </if>
+            <if test="avatar != null and avatar != ''">
+                avatar = #{avatar, jdbcType=VARCHAR},
+            </if>
+            <if test="address != null and address != ''">
+                address = #{address, jdbcType=VARCHAR},
+            </if>
+            <!-- 关键部分：更新 POINT 字段 -->
+            <!-- 只有当 longitude 和 latitude 都不为 null 时才更新 coord -->
+            <if test="longitude != null and latitude != null">
+                coord = ST_GeomFromText(CONCAT('POINT(', #{longitude}, ' ', #{latitude}, ')')),
+            </if>
+            <if test="youxiang != null and youxiang != ''">
+                youxiang = #{youxiang, jdbcType=VARCHAR},
+            </if>
+            <if test="accountId != null and accountId != ''">
+                accountId = #{accountId, jdbcType=VARCHAR},
+            </if>
+            <if test="region != null and region != ''">
+                region = #{region, jdbcType=VARCHAR},
+            </if>
+            <if test="regions != null and regions != ''">
+                regions = #{regions, jdbcType=VARCHAR},
+            </if>
+        </set>
+        <!-- 更新的条件 -->
+        WHERE id = #{id, jdbcType=INTEGER}
+    </update>
+    <select id="selectUserInfoWithDistance"
+            resultType="org.example.pojo.envcontent.userDetailedInformation">
+        SELECT
+            id,
+            username,
+            gender,
+            avatar,
+            address,
+            region,
+            regions,
+            -- 核心转换：将数据库 POINT 类型转为 WKT 字符串，映射到实体类的 String coord
+            ST_AsText(coord) AS coord,
+            -- 提取 POINT 的 X 坐标（经度），映射到实体类的 Double longitude
+            ST_X(coord) AS longitude,
+            -- 提取 POINT 的 Y 坐标（纬度），映射到实体类的 Double latitude
+            ST_Y(coord) AS latitude,
+            youxiang,
+            account_id AS accountId  -- 数据库字段 account_id 映射到实体类的 accountId
+        FROM
+            user_detailed_information
+        WHERE
+            account_id = #{accountId, jdbcType=INTEGER}
+    </select>
+    <select id="getuserData" resultType="org.example.pojo.envcontent.userDetailedInformation">
+            SELECT * FROM user_detailed_information WHERE account_id = #{senderId}
+    </select>
+
+
+</mapper>
